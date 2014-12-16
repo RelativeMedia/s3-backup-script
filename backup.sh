@@ -40,15 +40,19 @@ sendMail(){
 }
 
 ## Check we can write to the backups directory
-if [ -w "$TmpBackupDir" ]
+if [ ! -d "$TmpBackupDir" ]
 then
-  # Do nothing and move along.
-    echo 'Found and is writable:  '$TmpBackupDir
+    mkdir -p $TmpBackupDir
 else
-    echo "Can't write to: "$TmpBackupDir
-    sendMail "Backup Error" "Can't write to: $TmpBackupDir"
-    exit
-    
+    if [ -w "$TmpBackupDir" ]
+    then
+        # Do nothing and move along.
+        echo 'Found and is writable:  '$TmpBackupDir
+    else
+        echo "Can't write to: "$TmpBackupDir
+        sendMail "Backup Error" "Can't write to: $TmpBackupDir"
+        exit
+    fi
 fi
 
 echo ''
