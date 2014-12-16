@@ -41,11 +41,12 @@ chown -R s3backups:s3backups /opt/backup && chmod -R 750 /opt/backup;
 login to mysql cli as root and run the following sql statements, replace the PASSWORD with a real one.
 
 ```sql
-GRANT LOCK TABLES, SELECT ON *.* TO 'BACKUP'@'%' IDENTIFIED BY 'PASSWORD';
+CREATE USER 'backup'@'localhost' IDENTIFIED BY 'SOMEPASSWORD';
+GRANT LOCK TABLES, SELECT ON *.* TO 'backup'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-edit `database.cnf` with this new user/password.
+edit `database.cnf` with this new user/password, and the hostname if mysql isn't on the same host.
 
 edit `backup.sh` and fill in the following info..
 
