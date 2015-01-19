@@ -1,7 +1,7 @@
 #!/bin/bash
 source backup.cfg
 sendMail(){
-	msg='{ "async": false, "key": "'$MANDRILLKEY'", "message": { "from_email": "'$FROMEMAIL'", "from_name": "'$FROMNAME'", "return_path_domain": null, "subject": "['$HOSTNAME'] '$1'", "text": "'$2'", "attachments": [{ "type": "text/plain", "name": "backup_report.txt", "content": "'$(base64 $2)'" }], "to": [{ "email": "'$SENDTOEMAIL'", "type": "to" }] }}';
+	msg='{ "async": false, "key": "'$MANDRILLKEY'", "message": { "from_email": "'$FROMEMAIL'", "from_name": "'$FROMNAME'", "return_path_domain": null, "subject": "['$HOSTNAME'] '$1'", "text": "Backups Complete For '$HOSTNAME'.", "attachments": [{ "type": "text/plain", "name": "backup_report.txt", "content": "'$(base64 $2)'" }], "to": [{ "email": "'$SENDTOEMAIL'", "type": "to" }] }}';
     results=$(curl -A 'Mandrill-Curl/1.0' -d "$msg" 'https://mandrillapp.com/api/1.0/messages/send.json' -s 2>&1);
     echo "$results" | grep "sent" -q;
     if [ $? -ne 0 ]; then
