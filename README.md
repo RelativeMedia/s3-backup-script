@@ -6,7 +6,7 @@ Download the zip of s3cmd to /opt, and install it.
 
 ```shell
 wget -O- -q http://s3tools.org/repo/deb-all/stable/s3tools.key | sudo apt-key add -;
-sudo wget -O/etc/apt/sources.list.d/s3tools.list http://s3tools.org/repo/deb-all/stable/s3tools.list;
+sudo wget http://s3tools.org/repo/deb-all/stable/s3tools.list -O /etc/apt/sources.list.d/s3tools.list;
 sudo apt-get update && sudo apt-get install s3cmd python-dateutil unzip -y;
 sudo useradd s3backups -m -s /usr/sbin/nologin;
 ```
