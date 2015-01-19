@@ -2,7 +2,10 @@
 
 ## Email Variables
 EMAILDATE=`date --date="today" +%y-%m-%d`
-SENDTOEMAIL="your@emailaddress.com"
+SENDTOEMAIL="your@emailhere.com"
+MANDRILLKEY="YOUR MANDRILL API KEY"
+FROMEMAIL="backups@domain.com"
+FROMNAME="Backup Script"
 
 ### The URI of the S3 bucket.
 ### This is usually in the form of domain.com for me 
@@ -36,7 +39,27 @@ FileBackupName="os.$today"
 DBBackupName="db.$today"
 
 sendMail(){
-  /usr/bin/mail -s "[$HOSTNAME] $1" "$SENDTOEMAIL" < $2
+	
+	msg='{ '\
+		'"async": false,'\
+		'"key": "'$MANDRILLKEY'",'\
+		'"message": { ' \
+			'"from_email": "'$FROMEMAIL'", '\
+			'"from_name": "'$FROMNAME'", '\
+			'"return_path_domain": null,'\
+			'"subject": "['$HOSTNAME'] '$1'",'\
+		  '"text": "'$2'",'\
+		  '"to": [{ '\
+				'"email": "'$SENDTOEMAIL'",'\
+				'"type": "to"'\
+	    '}]'\
+		'}}';
+	results=$(curl -A 'Mandrill-Curl/1.0' -d "$msg" 'https://mandrillapp.com/api/1.0/messages/send.json' -s 2>&1);
+	echo "$results" | grep "sent" -q;
+	if [ $? -ne 0 ]; then
+		echo "An error occured: $results";
+	fi
+	#/usr/bin/mail -s "[$HOSTNAME] $1" "$SENDTOEMAIL" < $2
 }
 
 ## Check we can write to the backups directory
