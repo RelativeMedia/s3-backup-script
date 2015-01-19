@@ -1,43 +1,5 @@
 #!/bin/bash
-
-## Email Variables
-EMAILDATE=`date --date="today" +%y-%m-%d`
-SENDTOEMAIL="your@emailhere.com"
-MANDRILLKEY="YOUR MANDRILL API KEY"
-FROMEMAIL="backups@domain.com"
-FROMNAME="Backup Script"
-
-### The URI of the S3 bucket.
-### This is usually in the form of domain.com for me 
-S3URI='s3://s3bucket/backups/'
-S3ConfigFile='/opt/backup/.s3cfg'
-
-### An array of directories you want to backup (I included a few configuration directories to).
-### Assuming standard ubuntu with apache2, and mysql
-filesToBackup=(
-'/var/www'
-'/etc/passwd'
-'/etc/hosts'
-'/etc/fstab'
-'/etc/group'
-'/etc/apache2'
-'/etc/mysql'
-)
-
-### The databases you want to backup
-DBsToBackup=(
-'yourdbname'
-)
-### The directory we're going to story our backups in on this server.
-### dont use a trailing slash.
-TmpBackupDir='/opt/backup/temp'
-### The MySQL details
-MySQLConfig='/opt/backup/database.cnf'
-
-today=`date --date="today" +%m%d%y`
-FileBackupName="os.$today"
-DBBackupName="db.$today"
-
+source backup.cfg
 sendMail(){
     msg='{ "async": false, "key": "'$MANDRILLKEY'", "message": { "from_email": "'$FROMEMAIL'", "from_name": "'$FROMNAME'", "return_path_domain": null, "subject": "['$HOSTNAME'] '$1'", "text": "'$2'", "to": [{ "email": "'$SENDTOEMAIL'", "type": "to" }] }}';
     results=$(curl -A 'Mandrill-Curl/1.0' -d "$msg" 'https://mandrillapp.com/api/1.0/messages/send.json' -s 2>&1);
