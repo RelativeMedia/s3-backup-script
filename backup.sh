@@ -6,7 +6,7 @@ SENDTOEMAIL="your@emailaddress.com"
 
 ### The URI of the S3 bucket.
 ### This is usually in the form of domain.com for me 
-S3URI='s3://s3bucket'
+S3URI='s3://s3bucket/backups/'
 S3ConfigFile='/opt/backup/.s3cfg'
 
 ### An array of directories you want to backup (I included a few configuration directories to).
@@ -82,7 +82,7 @@ gzip "$TmpBackupDir/$DBBackupName.tar"
 ## Sending new files to S3
 echo ''
 echo 'Syncing backups to S3'
-s3cmd put --config=$S3ConfigFile --recursive $TmpBackupDir $S3URI
+s3cmd put --config=$S3ConfigFile --recursive $TmpBackupDir/* $S3URI
 if [ $? -ne 0 ]; then
     sendMail "S3 Sync Failed" "S3 Sync failed for $TmpBackupDir on S3 Bucket $S3URI"
     exit
