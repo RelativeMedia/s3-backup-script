@@ -27,6 +27,8 @@ else
     fi
 fi
 
+
+## Backup the OS files
 echo ''
 tar -cf "$TmpBackupDir/$FileBackupName.tar" --files-from /dev/null
 for item  in "${filesToBackup[@]}"
@@ -36,20 +38,25 @@ do
 done
 gzip "$TmpBackupDir/$FileBackupName.tar"
 
+
+
 ## Backup the MySQL databases
-echo ''
-tar -cf "$TmpBackupDir/$DBBackupName.tar" --files-from /dev/null
-for db in "${DBsToBackup[@]}"
-do
-    filename="$db.sql"
-    echo "Dumping DB $db to $TmpBackupDir/$filename"
-    mysqldump --defaults-extra-file=$MySQLConfig $db > "$TmpBackupDir/$filename"
-    echo "Backing up DB $db to $TmpBackupDir/$DBBackupName.tar.gz"
-    tar -pPrf "$TmpBackupDir/$DBBackupName.tar" "$TmpBackupDir/$filename"
-    echo "Deleting uncompressed sql backup for DB $db"
-    rm "$TmpBackupDir/$filename"
-done
-gzip "$TmpBackupDir/$DBBackupName.tar"
+if [ "$EnableDBBackups" = true ]; then
+	echo ''
+	tar -cf "$TmpBackupDir/$DBBackupName.tar" --files-from /dev/null
+	for db in "${DBsToBackup[@]}"
+	do
+			filename="$db.sql"
+			echo "Dumping DB $db to $TmpBackupDir/$filename"
+			mysqldump --defaults-extra-file=$MySQLConfig $db > "$TmpBackupDir/$filename"
+			echo "Backing up DB $db to $TmpBackupDir/$DBBackupName.tar.gz"
+			tar -pPrf "$TmpBackupDir/$DBBackupName.tar" "$TmpBackupDir/$filename"
+			echo "Deleting uncompressed sql backup for DB $db"
+			rm "$TmpBackupDir/$filename"
+	done
+	gzip "$TmpBackupDir/$DBBackupName.tar"
+fi
+
 
 ## Sending new files to S3
 echo ''
