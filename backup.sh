@@ -1,13 +1,41 @@
 #!/bin/bash
 source backup.cfg
 sendMail(){
-	msg='{ "async": false, "key": "'$MANDRILLKEY'", "message": { "from_email": "'$FROMEMAIL'", "from_name": "'$FROMNAME'", "return_path_domain": null, "subject": "['$HOSTNAME'] '$1'", "text": "Backups Complete For '$HOSTNAME'.", "attachments": [{ "type": "text/plain", "name": "backup_report.txt", "content": "'$2'" }], "to": [{ "email": "'$SENDTOEMAIL'", "type": "to" }] }}';
-    results=$(curl -A 'Mandrill-Curl/1.0' -d "$msg" 'https://mandrillapp.com/api/1.0/messages/send.json' -s 2>&1);
-    echo "$results" | grep "sent" -q;
-    if [ $? -ne 0 ]; then
-        echo "An error occured: $results";
-    fi
-    #/usr/bin/mail -s "[$HOSTNAME] $1" "$SENDTOEMAIL" < $2
+  msg='{
+  "async": false,
+  "key": "'$MANDRILLKEY'",
+  "message": {
+    "from_email": "'$FROMEMAIL'",
+    "from_name": "'$FROMNAME'",
+    "return_path_domain": null,
+    "subject": "['$HOSTNAME'] '$1'",
+    "text": "'$2'",'
+
+  if [ -n "$3" ]; then
+  msg+='
+    "attachments": [
+      {
+        "type": "text/plain",
+        "name": "backup_report.txt",
+        "content": "'$3'"
+      }
+    ],'
+  fi
+  msg+='
+    "to": [
+      {
+        "email": "'$SENDTOEMAIL'",
+        "type": "to"
+      }
+    ]
+   }
+  }'
+	
+	results=$(curl -A 'Mandrill-Curl/1.0' -d "$msg" 'https://mandrillapp.com/api/1.0/messages/send.json' -s 2>&1);
+  echo "$results" | grep "sent" -q;
+  if [ $? -ne 0 ]; then
+		echo "An error occured: $results";
+	fi
 }
 
 
