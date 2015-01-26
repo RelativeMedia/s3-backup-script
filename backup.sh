@@ -1,5 +1,10 @@
 #!/bin/bash
 source backup.cfg
+
+GREEN="\033[32m" 
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 sendMail(){
   msg='{
   "async": false,
@@ -38,6 +43,13 @@ sendMail(){
 	fi
 }
 
+log() {
+	echo -e "${RESET}[$(date)] -${GREEN} ${*}${RESET}" >> "${LogDir}/run.log"
+}
+
+error() {
+	echo -e "${RESET}[$(date)] -${RED} ${*}${RESET}" >> "${LogDir}/error.log"
+}
 
 ## Check we can write to the backups directory
 if [ ! -d "$TmpBackupDir" ]
@@ -47,9 +59,9 @@ else
     if [ -w "$TmpBackupDir" ]
     then
         # Do nothing and move along.
-        echo 'Found and is writable:  '$TmpBackupDir
+        log 'Found and is writable:  '$TmpBackupDir
     else
-        echo "Can't write to: "$TmpBackupDir
+        error "Can't write to: "$TmpBackupDir
         sendMail "Backup Error" "Can't write to: $TmpBackupDir"
         exit
     fi
@@ -57,50 +69,53 @@ fi
 
 
 ## Backup the OS files
-echo ''
+log 'Beginning to backup OS Files'
 tar -cf "$TmpBackupDir/$FileBackupName.tar" --files-from /dev/null
 for item  in "${filesToBackup[@]}"
 do
-    echo "Backing up $item to $TmpBackupDir/$FileBackupName.tar.gz"
+    log "Backing up $item to $TmpBackupDir/$FileBackupName.tar.gz"
     tar -pPrf "$TmpBackupDir/$FileBackupName.tar" "$item"
 done
 gzip "$TmpBackupDir/$FileBackupName.tar"
-
+log "Done backing up OS Files"
 
 
 ## Backup the MySQL databases
 if [ "$EnableDBBackups" = true ]; then
-	echo ''
+	log 'Beginning to backup DB Files'
 	tar -cf "$TmpBackupDir/$DBBackupName.tar" --files-from /dev/null
 	for db in "${DBsToBackup[@]}"
 	do
 			filename="$db.sql"
-			echo "Dumping DB $db to $TmpBackupDir/$filename"
+			log "Dumping DB $db to $TmpBackupDir/$filename"
 			mysqldump --defaults-extra-file=$MySQLConfig $db > "$TmpBackupDir/$filename"
-			echo "Backing up DB $db to $TmpBackupDir/$DBBackupName.tar.gz"
+			log "Backing up DB $db to $TmpBackupDir/$DBBackupName.tar.gz"
 			tar -pPrf "$TmpBackupDir/$DBBackupName.tar" "$TmpBackupDir/$filename"
-			echo "Deleting uncompressed sql backup for DB $db"
+			log "Deleting uncompressed sql backup for DB $db"
 			rm "$TmpBackupDir/$filename"
 	done
 	gzip "$TmpBackupDir/$DBBackupName.tar"
+else
+	log "Skipping backup of DB files, since config is set to false"
 fi
+log "Done backing up DB files"
 
 
 ## Sending new files to S3
-echo ''
-echo 'Syncing backups to S3'
+log 'Syncing backups to S3'
 s3cmd put --config=$S3ConfigFile --recursive $TmpBackupDir/* $S3URI
 if [ $? -ne 0 ]; then
-    sendMail "S3 Sync Failed" "S3 Sync failed for $TmpBackupDir on S3 Bucket $S3URI"
+    error  "S3 Sync Failed for $TmpBackupDir on S3 Bucket $S3URI"
+		sendMail "S3 Sync Failed" "S3 Sync failed for $TmpBackupDir on S3 Bucket $S3URI"
+		error "S3 Backup failed, leaving local files in place at $TmpBackupDir"
     exit
 fi
-
-echo ''
-echo "deleting local backups now that sync is complete"
+log "S3 Sync is complete"
+log "deleting local backups"
 rm -rf $TmpBackupDir/*
 
-echo 'All Done! Yay! (",)'
+log 'All Done! Yay! (",)'
 
 ## Email Report of What Exists on S3 in Today's Folder
 s3cmd ls -r --config=$S3ConfigFile $S3URI > "logs/s3report.txt"
-sendMail "Backup Finished" "$(base64 -w 0 logs/s3report.txt)"
+sendMail "Backup Finished" "Backup Finished, s3 bucket contents attached" "$(base64 -w 0 logs/s3report.txt)"
