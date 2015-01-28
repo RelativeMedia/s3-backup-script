@@ -1,8 +1,9 @@
 #!/bin/bash
-source backup.cfg
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source ${DIR}/backup.cfg
 
-GREEN="\033[32m" 
-YELLOW="\033[33m"
+GREEN="\033[0;32m" 
+RED="\033[0;31m"
 RESET="\033[0m"
 
 sendMail(){
@@ -117,5 +118,5 @@ rm -rf $TmpBackupDir/*
 log 'All Done! Yay! (",)'
 
 ## Email Report of What Exists on S3 in Today's Folder
-s3cmd ls -r --config=$S3ConfigFile $S3URI > "logs/s3report.txt"
-sendMail "Backup Finished" "Backup Finished, s3 bucket contents attached" "$(base64 -w 0 logs/s3report.txt)"
+s3cmd ls -r --config=$S3ConfigFile $S3URI > "${LogDir}/s3report.txt"
+sendMail "Backup Finished" "Backup Finished, s3 bucket contents attached" "$(base64 -w 0 ${logDir}/s3report.txt)"
