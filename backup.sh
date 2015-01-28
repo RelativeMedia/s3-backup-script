@@ -119,4 +119,4 @@ log 'All Done! Yay! (",)'
 
 ## Email Report of What Exists on S3 in Today's Folder
 s3cmd ls -r --config=$S3ConfigFile $S3URI > "${LogDir}/s3report.txt"
-sendMail "Backup Finished" "Backup Finished, s3 bucket contents attached" "$(base64 -w 0 ${logDir}/s3report.txt)"
+sendMail "Backup Finished" "Backup Finished, s3 bucket contents attached" "$(base64 -w 0 ${LogDir}/s3report.txt)"
