@@ -44,6 +44,52 @@ GRANT LOCK TABLES, SELECT ON *.* TO 'backup'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
+
+## S3 Permissions Example
+This example policy gives the s3 user get, put, delete permissions to the bucket and list bucket permissions to the s3 account.
+It will basically provide the s3 user access to upload, delete, and download into their bucket only.
+
+```json
+{
+     "Version": "2008-10-17",
+     "Statement": [
+          {
+               "Sid": "Stmt1414634934647",
+               "Effect": "Allow",
+               "Principal": {
+                    "AWS": "arn:aws:iam::643101087670:user/someuser_s3"
+               },
+               "Action": [
+                    "s3:AbortMultipartUpload",
+                    "s3:GetObjectAcl",
+                    "s3:GetObjectVersion",
+                    "s3:DeleteObject",
+                    "s3:DeleteObjectVersion",
+                    "s3:GetObject",
+                    "s3:PutObjectAcl",
+                    "s3:PutObjectVersionAcl",
+                    "s3:PutObject",
+                    "s3:GetObjectVersionAcl"
+               ],
+               "Resource": "arn:aws:s3:::somesite.com/*"
+          },
+          {
+               "Sid": "Stmt1414634980626",
+               "Effect": "Allow",
+               "Principal": {
+                    "AWS": "arn:aws:iam::643101087670:user/someuser_s3"
+               },
+               "Action": [
+                    "s3:ListBucket",
+                    "s3:ListBucketMultipartUploads",
+                    "s3:GetBucketLocation"
+               ],
+               "Resource": "arn:aws:s3:::somesite.com"
+          }
+     ]
+}
+```
+
 ## Backup Script Configuration
 
 ```shell
