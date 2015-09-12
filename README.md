@@ -15,7 +15,7 @@ The shell script needs to be cloned or copied into `/opt/` and `chown` to `root:
 
 ```shell
 sudo -i /bin/zsh; #login as root
-git clone https://git.relative.media/mhdevita/s3-backup-script.git /opt/backup
+git clone https://git.devita.co/mhdevita/s3-backup-script.git /opt/backup
 chown -R s3backups:s3backups /opt/backup && chmod -R 750 /opt/backup && chmod g+s /opt/backup;
 
 #fix the permissions
@@ -68,3 +68,12 @@ edit `backup.cfg` and fill in the following info..
 * **MySQLConfig:** path to the database.cnf file that has the backup credentials
 
 you can test this script by running `sudo -u s3backups /opt/backup/backup.sh;`. It should upload to s3 and shoot you an email.
+
+## Crontab Configuration
+
+```shell
+sudo crontab -e
+
+##paste in the following crontab entry, it will run at midnight each night
+0 0 * * * /bin/bash /opt/backup/backup.sh > /dev/null
+```
